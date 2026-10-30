@@ -99,6 +99,11 @@ DEFAULTS = {
 # the catalogue works on it, cloned ones included. Left unset, the API still
 # serves simba-3.0 (six languages); simba-3.2 is English only.
 SPEECHIFY_MODEL = "simba-3.5"
+# Without this header a request runs at whatever API version the workspace is
+# pinned to, and the shape of /v1/voices depends on it: older pins return a
+# bare list, newer ones the paged {voices, has_more, next_cursor}. Pinning
+# here means one shape for every account.
+SPEECHIFY_HEADERS = {"Speechify-Version": "2026-09-30"}
 
 
 def load_config() -> dict:
@@ -326,7 +331,7 @@ def make_synth(cfg: dict):
                 {"input": text, "voice_id": cfg["voice"] or "oliver",
                  "model": cfg["model"] or SPEECHIFY_MODEL,
                  "audio_format": "wav"},
-                {"Authorization": f"Bearer {key}"})
+                {"Authorization": f"Bearer {key}", **SPEECHIFY_HEADERS})
             audio = base64.b64decode(json.loads(raw)["audio_data"])
             out.write_bytes(fix_riff_sizes(audio))
         return synth
@@ -718,7 +723,8 @@ def list_voices(cfg: dict) -> int:
             pages += 1
             url = ("https://api.speechify.ai/v1/voices?limit=100"
                    + (f"&cursor={cursor}" if cursor else ""))
-            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}"})
+            req = urllib.request.Request(
+                url, headers={"Authorization": f"Bearer {key}", **SPEECHIFY_HEADERS})
             with urllib.request.urlopen(req, timeout=60) as r:
                 page = json.loads(r.read())
             for v in page.get("voices", []):
