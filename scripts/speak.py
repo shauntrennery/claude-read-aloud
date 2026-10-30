@@ -317,7 +317,7 @@ def make_synth(cfg: dict):
 
         def synth(text: str, out: pathlib.Path) -> None:
             raw = http_json(
-                "https://api.sws.speechify.com/v1/audio/speech",
+                "https://api.speechify.ai/v1/audio/speech",
                 {"input": text, "voice_id": cfg["voice"] or "oliver",
                  "audio_format": "wav"},
                 {"Authorization": f"Bearer {key}"})
@@ -710,7 +710,7 @@ def list_voices(cfg: dict) -> int:
         cursor, pages = "", 0
         while pages < 12:
             pages += 1
-            url = ("https://api.sws.speechify.com/v1/voices?limit=100"
+            url = ("https://api.speechify.ai/v1/voices?limit=100"
                    + (f"&cursor={cursor}" if cursor else ""))
             req = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}"})
             with urllib.request.urlopen(req, timeout=60) as r:
